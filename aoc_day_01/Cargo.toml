@@ -13,3 +13,4 @@ path = "src/main.rs"
 name = "aoc_day_01"
 
 [dependencies]
+rstest = "0.18.2"
