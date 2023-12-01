@@ -1,6 +1,15 @@
 use std::fs;
 
-pub fn parse_callibration_number(input: &str) -> usize {
+pub fn get_callibration_sum() -> usize {
+    let file_as_string = read_calibration_file();
+    let lines = file_as_string.lines();
+
+    lines.map(|line| {
+        parse_callibration_number(line)
+    }).reduce(|acc, value| acc + value).unwrap()
+}
+
+fn parse_callibration_number(input: &str) -> usize {
     let joined_number_str = format!("{}{}", parse_first_number(input), parse_last_number(input));
     match joined_number_str.parse::<usize>() {
         Ok(joined_number) => joined_number,
@@ -81,4 +90,5 @@ mod calibration_parser_should {
         let joined_number = parse_callibration_number(&input);
         assert_eq!(expected, joined_number);
     }
+
 }
