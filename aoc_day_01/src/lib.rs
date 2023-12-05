@@ -1,4 +1,5 @@
-use std::fs;
+use std::{fs, collections::HashMap};
+
 
 pub fn get_callibration_sum() -> usize {
     let file_as_string = read_calibration_file();
@@ -37,6 +38,40 @@ fn parse_first_number(input: &str) -> char {
 fn parse_last_number(input: &str) -> char {
     let rev_str = input.chars().rev().collect::<String>();
     parse_first_number(&rev_str)
+}
+
+fn clean_string(input: String) -> String {
+    let mut result = input.clone();
+    let dict = HashMap::from([
+        ("one", "1"),
+        ("two", "2"),
+        ("three", "3"),
+        ("four", "4"),
+        ("five", "5"),
+        ("six", "6"),
+        ("seven", "7"),
+        ("eight", "8"),
+        ("nine", "9"),
+    ]);
+
+    let mut matches: Vec<(usize, &str)> = vec![];
+
+    for (word_number, _) in dict.iter() {
+        let word_matches = input.match_indices(word_number);
+        matches.extend(word_matches);
+    }
+
+    matches.sort_by(|x, y| x.0.cmp(&y.0));
+
+    let first = matches.first().unwrap();
+    let last = matches.last().unwrap();
+    let first_replacement = dict.get(first.1).unwrap();
+    let last_replacement = dict.get(last.1).unwrap();
+
+    result = result.replacen(first.1, first_replacement, 1);
+    result = result.replacen(last.1, last_replacement, 1);
+
+    result
 }
 
 #[cfg(test)]
@@ -89,6 +124,13 @@ mod calibration_parser_should {
     fn return_number_composed_of_first_and_last_number(#[case] input: String, #[case] expected: usize) {
         let joined_number = parse_callibration_number(&input);
         assert_eq!(expected, joined_number);
+    }
+
+    #[test]
+    fn clean_numbers_as_words() {
+        let input = String::from("abcone2threexyz");
+        let result = clean_string(input);
+        assert_eq!(result, "abc123xyz")
     }
 
 }
