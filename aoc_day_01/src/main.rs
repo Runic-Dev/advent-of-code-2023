@@ -1,5 +1,9 @@
-use aoc_day_01_lib::get_callibration_sum;
+use std::fs;
+
+use aoc_day_01_lib::extract_number;
 
 fn main() {
-    print!("{}", get_callibration_sum());
+    let file = fs::read_to_string("input.txt").unwrap();
+    let answer = extract_number(file);
+    println!("{}", answer);
 }
