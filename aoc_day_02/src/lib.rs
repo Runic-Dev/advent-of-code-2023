@@ -1,3 +1,32 @@
+pub fn parse_color_amounts(input: String) -> (usize, Vec<Round>) {
+    let split = input.split_once(": ").unwrap();
+    let id = parse_game_id(split.0.to_string());
+    let mut rounds: Vec<Vec<(usize, String)>> = vec![];
+    parse_rounds(split.1.to_string()).iter().for_each(|round| {
+        let parsed_amount_colors = parse_color_amount(round.to_string());
+        rounds.push(parsed_amount_colors);
+    });
+    (id, rounds)
+}
+
+pub type Round = Vec<(usize, String)>;
+pub type GameRow = (usize, Vec<Round>);
+
+pub fn add_qualifying_ids(game_rows: Vec<GameRow>) -> usize {
+    let mut answer: usize = 0;
+    game_rows.into_iter().for_each(|row| {
+        let impossible = row.1.iter().any(|round| {
+            round.iter().any(|color_amount| {
+                (color_amount.1 == "red" && color_amount.0 > 12) ||
+                (color_amount.1 == "green" && color_amount.0 > 13) ||
+                (color_amount.1 == "blue" && color_amount.0 > 14)
+            })
+        });
+        if !impossible {answer += row.0}
+    });
+    answer
+}
+
 fn parse_color_amount(input: String) -> Vec<(usize, String)> {
     input
         .split(", ")
@@ -17,10 +46,15 @@ fn parse_game_id(input: String) -> usize {
         .unwrap()
 }
 
+fn parse_rounds(input: String) -> Vec<String> {
+    input.split("; ").map(|x| x.to_string()).collect()
+}
+
 #[cfg(test)]
 pub mod test {
     use super::parse_color_amount;
     use super::parse_game_id;
+    use super::parse_rounds;
     use rstest::rstest;
 
     #[rstest]
@@ -57,8 +91,10 @@ pub mod test {
         assert_eq!(result, expected);
     }
 
-    #[test]
-    fn parse_rounds_from_string() {
-        unimplemented!();
+    #[rstest]
+    #[case("3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green", vec!["3 blue, 4 red".to_string(), "1 red, 2 green, 6 blue".to_string(), "2 green".to_string()])]
+    fn parse_rounds_from_string(#[case] input: String, #[case] expected: Vec<String>) {
+        let result = parse_rounds(input);
+        assert_eq!(result, expected);
     }
 }
