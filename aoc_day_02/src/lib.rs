@@ -1,4 +1,4 @@
-pub fn parse_color_amounts(input: String) -> (usize, Vec<Round>) {
+pub fn parse_color_amounts(input: String) -> GameRow {
     let split = input.split_once(": ").unwrap();
     let id = parse_game_id(split.0.to_string());
     let mut rounds: Vec<Vec<(usize, String)>> = vec![];
@@ -12,22 +12,49 @@ pub fn parse_color_amounts(input: String) -> (usize, Vec<Round>) {
 pub type Round = Vec<(usize, String)>;
 pub type GameRow = (usize, Vec<Round>);
 
-pub fn add_qualifying_ids(game_rows: Vec<GameRow>) -> usize {
+pub fn add_qualifying_ids(game_rows: Vec<GameRow>) -> (usize, u128) {
     let mut answer: usize = 0;
+    let mut power: u128 = 0;
     game_rows.into_iter().for_each(|row| {
-        let impossible = row.1.iter().any(|round| {
-            round.iter().any(|color_amount| {
-                (color_amount.1 == "red" && color_amount.0 > 12) ||
-                (color_amount.1 == "green" && color_amount.0 > 13) ||
-                (color_amount.1 == "blue" && color_amount.0 > 14)
-            })
-        });
-        if !impossible {answer += row.0}
+        let red_number = get_largest_number_for(&row, "red");
+        let green_number = get_largest_number_for(&row, "green");
+        let blue_number = get_largest_number_for(&row, "blue");
+
+        let this_power = red_number * green_number * blue_number;
+
+        power += this_power as u128;
+
+        if !game_is_impossible(&row) {
+            answer += row.0
+        }
     });
-    answer
+    (answer, power)
 }
 
-fn parse_color_amount(input: String) -> Vec<(usize, String)> {
+fn game_is_impossible(row: &(usize, Vec<Vec<(usize, String)>>)) -> bool {
+    let impossible = row.1.iter().any(|round| {
+        round.iter().any(|color_amount| {
+            (color_amount.1 == "red" && color_amount.0 > 12)
+                || (color_amount.1 == "green" && color_amount.0 > 13)
+                || (color_amount.1 == "blue" && color_amount.0 > 14)
+        })
+    });
+    impossible
+}
+
+fn get_largest_number_for(row: &GameRow, color: &str) -> usize {
+    let mut red_numbers = row
+        .1
+        .iter()
+        .flatten()
+        .filter(|entry| entry.1.contains(color))
+        .map(|(amount, _)| amount)
+        .collect::<Vec<&usize>>();
+    red_numbers.sort();
+    *red_numbers.last().cloned().unwrap()
+}
+
+fn parse_color_amount(input: String) -> Round {
     input
         .split(", ")
         .map(|color_amount_str| {

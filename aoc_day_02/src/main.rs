@@ -11,5 +11,6 @@ fn main() {
 
     let answer = add_qualifying_ids(file);
 
-    println!("{}", answer);
+    println!("{}", answer.0);
+    println!("{}", answer.1);
 }
